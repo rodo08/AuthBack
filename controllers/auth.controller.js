@@ -14,14 +14,12 @@ export const signup = async (req, res) => {
 
   try {
     if (!email || !password || !name) {
-      res.status(400).json({ message: 'All fields are required' });
-      throw new Error('All fields are required');
+      return res.status(400).json({ message: 'All fields are required' });
     }
 
     const userAlreadyExists = await User.findOne({ email });
     if (userAlreadyExists) {
-      console.log('user', userAlreadyExists);
-      return res.status(403).json({ message: 'User already exists' });
+      return res.status(409).json({ message: 'User already exists' });
     }
 
     const hashedPassword = await bcryptjs.hash(password, 10);
@@ -52,7 +50,7 @@ export const signup = async (req, res) => {
     });
   } catch (error) {
     console.log(error);
-    res.status(403).json({ message: error.message });
+    res.status(500).json({ message: error.message });
   }
 };
 
@@ -95,12 +93,12 @@ export const login = async (req, res) => {
     const user = await User.findOne({ email });
 
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(401).json({ message: 'Invalid credentials' });
     }
     const isPasswordValid = await bcryptjs.compare(password, user.password);
 
     if (!isPasswordValid) {
-      return res.status(400).json({ message: 'Invalid password' });
+      return res.status(401).json({ message: 'Invalid credentials' });
     }
 
     generateTokenAndSetCookie(res, user._id);
@@ -135,7 +133,10 @@ export const forgotPassword = async (req, res) => {
     const user = await User.findOne({ email });
 
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(200).json({
+        success: true,
+        message: 'If an account with that email exists, a reset link has been sent.',
+      });
     }
     //generate reset token
     const resetToken = crypto.randomBytes(20).toString('hex');
@@ -158,7 +159,7 @@ export const forgotPassword = async (req, res) => {
     });
   } catch (error) {
     console.log(error);
-    res.status(400).json({ success: false, message: 'Server error' });
+    res.status(500).json({ success: false, message: 'Server error' });
   }
 };
 
