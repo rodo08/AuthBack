@@ -18,6 +18,6 @@ export const verifyToken = (req, res, next) => {
     next();
   } catch (error) {
     console.log(error);
-    return res.status(501).json({ success: false, message: "Server error" });
+    return res.status(500).json({ success: false, message: "Server error" });
   }
 };

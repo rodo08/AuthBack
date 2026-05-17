@@ -1,13 +1,11 @@
-import express from 'express';
 import 'dotenv/config';
+import express from 'express';
 import { connectDB } from './db/connectDB.js';
-import dotenv from 'dotenv';
 import authRoutes from './routes/auth.route.js';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 
 const app = express();
-dotenv.config();
 const PORT = process.env.PORT || 3000;
 
 const whitelist = [
@@ -34,7 +32,8 @@ app.use(cookieParser()); //allows to parse incoming cookies
 
 app.use('/api/auth', authRoutes);
 
-app.listen(3000, () => {
-  connectDB();
-  console.log('Server started on port:', PORT);
+connectDB().then(() => {
+  app.listen(PORT, () => {
+    console.log('Server started on port:', PORT);
+  });
 });
