@@ -30,10 +30,29 @@ app.use(
 app.use(express.json()); //middleware allows to parse incoming req wuth json payloads and attach them to req.body
 app.use(cookieParser()); //allows to parse incoming cookies
 
+app.get('/health', (req, res) => res.json({ status: 'ok' }));
+
 app.use('/api/auth', authRoutes);
+
+const keepAlive = () => {
+  const url = process.env.RENDER_EXTERNAL_URL;
+  if (!url) return;
+
+  const FOURTEEN_MINUTES = 14 * 60 * 1000;
+
+  setInterval(async () => {
+    try {
+      await fetch(`${url}/health`);
+      console.log(`[keep-alive] ping sent to ${url}/health`);
+    } catch (err) {
+      console.error('[keep-alive] ping failed:', err.message);
+    }
+  }, FOURTEEN_MINUTES);
+};
 
 connectDB().then(() => {
   app.listen(PORT, () => {
     console.log('Server started on port:', PORT);
+    keepAlive();
   });
 });
